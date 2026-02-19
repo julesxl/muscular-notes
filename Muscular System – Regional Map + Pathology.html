@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Muscular System – Regional Map + Pathology</title>
+  <style>
+:root{
+  --bg:#ffffff;
+  --card:#ffffff;
+  --ink:#000000;
+  --muted:#000000;
+  --line:#cccccc;
+  --accent:#000000;
+}
+    body{
+      margin:0; padding:24px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg); color:var(--ink);
+      line-height:1.35;
+    }
+    h1{ margin:0 0 6px 0; font-size:22px; }
+    .sub{ margin:0 0 18px 0; color:var(--muted); }
+    .toolbar{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin:14px 0 18px 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--bg);
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    button{
+      background:var(--card); color:var(--ink);
+      border:1px solid var(--line);
+      padding:8px 12px; border-radius:10px;
+      cursor:pointer;
+    }
+    button:hover{ border-color:var(--accent); }
+    .active-mode{ font-weight:700; border-color:var(--accent); }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    section{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin:14px 0;
+    }
+    h2{
+      margin:0 0 10px 0;
+      font-size:18px;
+    }
+    details{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      margin:10px 0;
+      background:rgba(255,255,255,0.02);
+    }
+    details details{ background:rgba(255,255,255,0.015); }
+    summary{
+      cursor:pointer;
+      font-weight:650;
+      list-style:none;
+      outline:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    summary::before{
+      content:"▸";
+      display:inline-block;
+      margin-right:10px;
+      color:var(--accent);
+      transform: translateY(-1px);
+    }
+    details[open] > summary::before{ content:"▾"; }
+    ul{ margin:8px 0 0 22px; }
+    li{ margin:4px 0; }
+    .note{ color:var(--muted); margin:8px 0 0 0; }
+    .tag{
+      display:inline-block;
+      font-size:12px;
+      padding:2px 8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      margin-left:8px;
+    }
+
+    /* ========================= */
+    /* Pathology flashcards UI   */
+    /* ========================= */
+    .fc-term{
+      appearance:none;
+      outline:none;
+
+      font: inherit;
+      font-weight: 700;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+    
+      box-shadow:none;
+      border-radius:0;
+    }
+    .fc-term:hover{ text-decoration: underline; text-underline-offset: 3px; }
+    .fc-term:focus{ outline:none; }
+    .fc-term:focus-visible{ outline:none; box-shadow:none; border-radius:0; }
+    .fc-def{ display:inline; }
+    /* When hidden, keep layout stable but remove content */
+    .fc-hidden .fc-def{ display:none; }
+    .fc-card{ position: relative; }
+        /* In study mode, default hides definitions unless user reveals */
+    .study-mode .fc-card:not(.fc-revealed){
+      /* leave term visible; hide definition */
+    }
+    .study-mode .fc-card:not(.fc-revealed) .fc-def{ display:none; }
+    
+    @media print{
+      body{ background:#fff; color:#000; padding:0; }
+      section, details{ background:#fff; border-color:#ccc; }
+      button, .toolbar{ display:none !important; }
+      summary::before{ color:#000; }
+      .note{ color:#333; }
+    }
+  
+    /* ROM definition table (motion cues) */
+    .romTable { width: 100%; border-collapse: collapse; font-size: 0.95em; margin: 0.5rem 0 0.75rem; }
+    .romTable th, .romTable td { border: 1px solid #cfcfcf; padding: 0.35rem 0.5rem; vertical-align: top; }
+    .romTable th { background: #f3f3f3; text-align: left; }
+    .romTable td:nth-child(1) { width: 12ch; font-weight: 600; }
+    .romTable td:nth-child(2) { width: 16ch; }
+
+
+    /* Skeletal map: tighten parent→child spacing, widen between motion groups */
+    #skeletalMap ul { margin-top: 0.25em; margin-bottom: 0.25em; }
+    #skeletalMap ul > li { margin: 0 0 0.85em 0; }
+    #skeletalMap ul > li:last-child { margin-bottom: 0; }
+    #skeletalMap ul ul { margin-top: 0.15em; margin-bottom: 0; }
+    #skeletalMap ul ul > li { margin: 0; }
+    #skeletalMap ul ul { list-style-type: circle; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Muscular System – Regional Map + Pathology</h1>
+  <p class="sub">Same controls as the skeletal page: nested expansions + click-to-reveal definitions inside any expansion. Use “Study mode” to hide everything by default for rapid recall.</p>
+
+  <div class="toolbar">
+    <button type="button" onclick="toggleAll(true)">Expand all</button>
+    <button type="button" onclick="toggleAll(false)">Collapse all</button>
+    <button id="studyToggle" type="button">Study mode</button>
+  </div>
+
+  <section id="skeletalMap">
+    <h2>Skeletal muscle map (region → compartment → action)</h2>
+
+      <p class="note">This is a motion-first view (useful for exams). Click any motion label to hide/reveal the prime movers.</p>
+
+      
+      
+
+<details>
+        <summary>Neck / Head</summary>
+        <ul>
+          <li><b>Neck flexion</b>: Bring chin to rest on chest.
+  <ul>
+    <li>Sternocleidomastoid, Anterior scalene, Longus capitis, Longus colli.</li>
+  </ul>
+</li>
+          <li><b>Neck extension</b>: Return head to erect position.
+  <ul>
+    <li>Superior trapezius, Splenius capitis/cervicis, Semispinalis capitis/cervicis, Longissimus capitis/cervicis, Interspinales cervicis.</li>
+  </ul>
+</li>
+          <li><b>Neck lateral flexion</b>: Tilt head as far as possible toward each shoulder.
+  <ul>
+    <li>Scalenes, Sternocleidomastoid (ipsilateral), Splenius, Longissimus, Levator scapulae (assist).</li>
+  </ul>
+</li>
+          <li><b>Neck rotation</b>: Turn head left/right as far as possible.
+  <ul>
+    <li>Sternocleidomastoid (contralateral), Splenius (ipsilateral), Multifidus/rotatores (segmental).</li>
+  </ul>
+</li>
+        </ul>
+      </details>
+
+      <details>
+        <summary>Shoulder (glenohumeral)</summary>
+        <ul>
+          <li><b>Flexion</b>: Raise arm from side position forward to position above head.
+  <ul>
+    <li>Anterior deltoid, Pectoralis major (clavicular), Biceps brachii, Coracobrachialis.</li>
+  </ul>
+</li>
+          <li><b>Extension</b>: Return arm to position at side of body.
+  <ul>
+    <li>Posterior deltoid, Latissimus dorsi, Teres major, Triceps brachii (long head).</li>
+  </ul>
+</li>
+          <li><b>Abduction</b>: Raise arm from side to position above head with palm away from head.
+  <ul>
+    <li>Deltoid, Supraspinatus.</li>
+  </ul>
+</li>
+          <li><b>Adduction</b>: Lower arm sideways and across body as far as possible.
+  <ul>
+    <li>Latissimus dorsi, Teres major, Pectoralis major, Coracobrachialis, Triceps (long head).</li>
+  </ul>
+</li>
+          <li><b>Medial rotation</b>: With elbow flexed, rotate arm so the thumb turns inward and toward the back.
+  <ul>
+    <li>Subscapularis, Pectoralis major, Latissimus dorsi, Teres major, Anterior deltoid.</li>
+  </ul>
+</li>
+          <li><b>Lateral rotation</b>: With elbow flexed, rotate arm so the thumb turns upward and even with the head.
+  <ul>
+    <li>Infraspinatus, Teres minor, Posterior deltoid.</li>
+  </ul>
+</li>
+        </ul>
+      </details>
+
+      <details>
+        <summary>Elbow / Forearm / Wrist</summary>
+        <ul>
+          <li><b>Elbow flexion</b>: Bend elbow so lower arm moves toward shoulder and hand is level with shoulder.
+  <ul>
+    <li>Biceps brachii, Brachialis, Brachioradialis.</li>
+  </ul>
+</li>
+          <li><b>Elbow extension</b>: Straighten elbow by lowering hand.
+  <ul>
+    <li>Triceps brachii, Anconeus.</li>
+  </ul>
+</li>
+          <li><b>Supination</b>: Turn lower arm and hand so palm is up.
+  <ul>
+    <li>Supinator, Biceps brachii.</li>
+  </ul>
+</li>
+          <li><b>Pronation</b>: Turn lower arm so palm is down.
+  <ul>
+    <li>Pronator teres, Pronator quadratus.</li>
+  </ul>
+</li>
+          <li><b>Wrist flexion</b>: Move palm toward inner aspect of forearm.
+  <ul>
+    <li>Flexor carpi radialis, Flexor carpi ulnaris, Palmaris longus, Flexor digitorum superficialis (assist).</li>
+  </ul>
+</li>
+          <li><b>Wrist extension</b>: Move fingers so fingers, hands, and forearm are in same plane.
+  <ul>
+    <li>Extensor carpi radialis longus/brevis, Extensor carpi ulnaris.</li>
+  </ul>
+</li>
+          <li><b>Wrist abduction (radial deviation)</b>: Bend wrist toward thumb.
+  <ul>
+    <li>Flexor carpi radialis, Extensor carpi radialis longus/brevis, APL/EPB (thumb contributors).</li>
+  </ul>
+</li>
+          <li><b>Wrist adduction (ulnar deviation)</b>: Bend wrist toward fifth finger.
+  <ul>
+    <li>Flexor carpi ulnaris, Extensor carpi ulnaris.</li>
+  </ul>
+</li>
+        </ul>
+      </details>
+
+      <details>
+        <summary>Spine / Trunk</summary>
+        <ul>
+          <li><b>Spine flexion</b>: Bend trunk forward.
+  <ul>
+    <li>Rectus abdominis, Internal/external obliques.</li>
+  </ul>
+</li>
+          <li><b>Spine extension</b>: Return trunk toward upright / arch backward.
+  <ul>
+    <li>Erector spinae (iliocostalis/longissimus/spinalis), Multifidus, Semispinalis, Rotatores, Interspinales.</li>
+  </ul>
+</li>
+          <li><b>Spine lateral flexion</b>: Side-bend trunk toward each side.
+  <ul>
+    <li>Quadratus lumborum, Iliocostalis/longissimus, Internal/external obliques.</li>
+  </ul>
+</li>
+          <li><b>Spine rotation</b>: Twist trunk left/right.
+  <ul>
+    <li>Internal/external obliques (coupled), Multifidus/rotatores (segmental control).</li>
+  </ul>
+</li>
+        </ul>
+      </details>
+
+      <details>
+        <summary>Hip / Knee / Ankle</summary>
+        <ul>
+          <li><b>Hip flexion</b>: Move leg forward and up.
+  <ul>
+    <li>Iliopsoas, Rectus femoris, Sartorius, Tensor fasciae latae, Iliacus.</li>
+  </ul>
+</li>
+          <li><b>Hip extension</b>: Move leg back beside other leg.
+  <ul>
+    <li>Gluteus maximus, Hamstrings (long head biceps femoris, Semitendinosus, Semimembranosus), Adductor magnus (posterior fibers).</li>
+  </ul>
+</li>
+          <li><b>Hip abduction</b>: Move leg away from body.
+  <ul>
+    <li>Gluteus medius/minimus, Tensor fasciae latae.</li>
+  </ul>
+</li>
+          <li><b>Hip adduction</b>: Move leg back toward other leg (across midline if possible).
+  <ul>
+    <li>Adductor longus/brevis/magnus, Gracilis, Pectineus.</li>
+  </ul>
+</li>
+          <li><b>Hip medial rotation</b>: Turn foot and leg toward other leg.
+  <ul>
+    <li>Anterior fibers of gluteus medius/minimus, Tensor fasciae latae.</li>
+  </ul>
+</li>
+          <li><b>Hip lateral rotation</b>: Turn foot and leg away from other leg.
+  <ul>
+    <li>Gluteus maximus, Piriformis, Obturators, Gemelli, Quadratus femoris, Sartorius (assist).</li>
+  </ul>
+</li>
+
+          <li><b>Knee flexion</b>: Bring heel back toward back of thigh.
+  <ul>
+    <li>Hamstrings, Gastrocnemius, Sartorius, Gracilis, Popliteus.</li>
+  </ul>
+</li>
+          <li><b>Knee extension</b>: Straighten knee to return leg to the floor/standing.
+  <ul>
+    <li>Quadriceps (rectus femoris + vasti).</li>
+  </ul>
+</li>
+          <li><b>Knee medial rotation</b>: With knee flexed, rotate tibia so foot turns inward (relative to femur).
+  <ul>
+    <li>Semitendinosus, Semimembranosus, Gracilis, Sartorius, Popliteus.</li>
+  </ul>
+</li>
+          <li><b>Knee lateral rotation</b>: With knee flexed, rotate tibia so foot turns outward (relative to femur).
+  <ul>
+    <li>Biceps femoris.</li>
+  </ul>
+</li>
+
+          <li><b>Dorsiflexion</b>: Move foot so that toes are pointed upward.
+  <ul>
+    <li>Tibialis anterior, Extensor hallucis longus, Extensor digitorum longus.</li>
+  </ul>
+</li>
+          <li><b>Plantarflexion</b>: Move foot so that toes are pointed downward.
+  <ul>
+    <li>Gastrocnemius, Soleus, Tibialis posterior, Flexor hallucis longus, Flexor digitorum longus, Plantaris.</li>
+  </ul>
+</li>
+          <li><b>Inversion</b>: Turn sole of foot toward the body.
+  <ul>
+    <li>Tibialis anterior, Tibialis posterior.</li>
+  </ul>
+</li>
+          <li><b>Eversion</b>: Turn sole of foot away from the body.
+  <ul>
+    <li>Fibularis (peroneus) longus/brevis, Extensor digitorum longus (assist).</li>
+  </ul>
+</li>
+        </ul>
+      </details>
+  </section>
+
+  <section>
+    
+    
+
+
+<h2>Muscular pathology (definitions with micro → macro logic)</h2>
+    <p class="note" id="pathNote">Tip: click any bolded condition name to hide/reveal the definition. Study mode hides all definitions until you “earn” them.</p>
+
+    <details>
+      <summary>A) Tendinopathy / tendinitis / tenosynovitis (load → microdamage → pain)</summary>
+      <ul>
+        <li><b>Tendinopathy</b>: Umbrella term for painful tendon dysfunction. Mechanism: repetitive load → microtears + collagen disorganization; may be inflammatory early (“tendinitis”) and more degenerative with chronicity (“tendinosis”).</li>
+        <li><b>Tendinitis</b>: More acute inflammatory tendon pain (often after a sudden spike in load). Mechanism: inflammatory mediators sensitize nociceptors → pain with use; swelling may appear.</li>
+        <li><b>Tendinosis</b>: Chronic degenerative tendon change (less classic inflammation, more collagen chaos). Mechanism: failed healing → weaker tensile properties → pain + higher rupture risk under load.</li>
+        <li><b>Tenosynovitis</b>: Inflammation of a tendon sheath (common in hands/wrists). Mechanism: friction inside a tight sheath → swelling → “sticking” motion and pain.</li>
+        <li><b>Enthesopathy</b>: Pain/degeneration at the tendon-to-bone insertion (enthesis). Mechanism: high stress concentration at insertion → microfailure + inflammatory signaling.</li>
+      </ul>
+
+      <details>
+        <summary>Major joint patterns (medial vs lateral differentiation)</summary>
+
+        <details>
+          <summary>Elbow</summary>
+          <ul>
+            <li><b>Lateral epicondylitis (tennis elbow)</b>: Lateral elbow pain from extensor origin tendinopathy (classically ECRB). Mechanism: wrist extension/grip overload → microtears at lateral epicondyle.</li>
+            <li><b>Medial epicondylitis (golfer’s elbow)</b>: Medial elbow pain from flexor-pronator origin tendinopathy. Mechanism: wrist flexion/pronation overload → microtears at medial epicondyle.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Knee</summary>
+          <ul>
+            <li><b>Pes anserine tendinopathy</b>: Medial knee pain at sartorius/gracilis/semitendinosus insertion. Mechanism: valgus/overuse + friction at anteromedial tibia insertion.</li>
+            <li><b>Iliotibial (IT) band friction syndrome</b>: Lateral knee pain from repetitive rubbing over lateral femoral epicondyle. Mechanism: repetitive flex/extend (running/cycling) → friction + local inflammation.</li>
+            <li><b>Patellar tendinopathy (jumper’s knee)</b>: Anterior knee pain at patellar tendon (often inferior pole of patella). Mechanism: high eccentric quad load → microdamage in tendon.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Ankle / Foot</summary>
+          <ul>
+            <li><b>Posterior tibial tendinopathy</b>: Medial ankle/arch pain; may progress to acquired flatfoot. Mechanism: tendon overload → loss of dynamic arch support.</li>
+            <li><b>Peroneal (fibularis) tendinopathy</b>: Lateral ankle pain; often with instability. Mechanism: eversion stabilizers overloaded (especially after ankle sprains).</li>
+            <li><b>Achilles tendinopathy</b>: Posterior heel pain; thickened tendon common. Mechanism: repetitive plantarflexion load → microdamage; risk of rupture with degeneration.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Hip</summary>
+          <ul>
+            <li><b>Gluteus medius/minimus tendinopathy</b>: Lateral hip pain (greater trochanteric pain region). Mechanism: abductor overload → tendon microdamage near trochanter.</li>
+            <li><b>Adductor tendinopathy</b>: Medial groin pain with adduction. Mechanism: high adductor load (cutting/sprinting) → microtears near pubic insertion.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Wrist / Hand</summary>
+          <ul>
+            <li><b>De Quervain tenosynovitis</b>: Radial (thumb-side) wrist pain from APL/EPB sheath inflammation. Mechanism: repetitive thumb abduction/extension → sheath swelling → friction.</li>
+            <li><b>ECU tendinopathy/tenosynovitis</b>: Ulnar-side wrist pain from extensor carpi ulnaris overload. Mechanism: repetitive ulnar deviation/supination-pronation stresses the tendon in its groove.</li>
+            <li><b>Trigger finger (stenosing tenosynovitis)</b>: Finger “catches/locks” as tendon thickens or A1 pulley tightens. Mechanism: tendon-pulley mismatch → snapping motion.</li>
+          </ul>
+        </details>
+
+      </details>
+    </details>
+
+    <details>
+      <summary>B) Bursitis (friction sacs inflamed)</summary>
+      <ul>
+        <li><b>Subacromial bursitis</b>: Shoulder pain with abduction; often co-travels with rotator cuff tendinopathy. Mechanism: impingement + repetitive overhead motion → bursal inflammation.</li>
+        <li><b>Olecranon bursitis</b>: Posterior elbow swelling (“student’s elbow”). Mechanism: repeated pressure/trauma → fluid + inflammation.</li>
+        <li><b>Prepatellar bursitis</b>: Anterior knee swelling (“housemaid’s knee”). Mechanism: kneeling pressure → bursal inflammation.</li>
+        <li><b>Trochanteric bursitis</b>: Lateral hip pain; often part of greater trochanteric pain syndrome. Mechanism: friction/overuse at lateral hip structures.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>C) Muscle injury (strain → tear → scar)</summary>
+      <ul>
+        <li><b>Muscle strain</b>: Overstretch/overload injury at muscle or myotendinous junction. Mechanism: microfiber disruption → inflammation → pain + weakness.</li>
+        <li><b>Partial tear</b>: More structural fiber disruption; pain + functional deficit. Mechanism: bigger discontinuity → longer healing time + scar risk.</li>
+        <li><b>Complete rupture</b>: Full-thickness failure (often tendon). Mechanism: compromised collagen + high load → sudden loss of function.</li>
+        <li><b>DOMS (delayed onset muscle soreness)</b>: Soreness 24–72h after unusual/eccentric work. Mechanism: microdamage + inflammatory signaling + sensitization (not lactic acid).</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>D) Compartment syndromes (pressure → ischemia)</summary>
+      <ul>
+        <li><b>Acute compartment syndrome</b>: Rising compartment pressure compromises perfusion → ischemia → necrosis. Mechanism: swelling/bleeding in a closed fascial box; emergency to prevent permanent damage.</li>
+        <li><b>Chronic exertional compartment syndrome</b>: Exercise-induced pressure rise causing recurrent pain/tightness that resolves with rest. Mechanism: reversible perfusion limitation during activity.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>E) Inflammatory myopathies (immune attack on muscle)</summary>
+      <ul>
+        <li><b>Polymyositis</b>: Immune-mediated proximal muscle weakness. Mechanism: inflammatory cell attack on muscle fibers → weakness more than pain.</li>
+        <li><b>Dermatomyositis</b>: Proximal weakness + characteristic skin findings. Mechanism: immune-mediated microvascular injury affecting muscle/skin.</li>
+        <li><b>Inclusion body myositis</b>: Slowly progressive weakness (often older adults), frequently treatment-resistant. Mechanism: mixed inflammatory + degenerative protein-aggregate pathology.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>F) Necrosis/toxicity (muscle breakdown)</summary>
+      <ul>
+        <li><b>Rhabdomyolysis</b>: Skeletal muscle breakdown releasing myoglobin/CK into blood. Mechanism: membrane failure → myoglobin load can injure kidneys; triggers include crush injury, extreme exertion, heat, certain meds/toxins.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>G) Neuromuscular transmission disorders (wires + receptors fail → weakness)</summary>
+      <ul>
+        <li><b>Myasthenia gravis</b>: Autoantibodies reduce functional ACh receptors at NMJ → fatigable weakness. Mechanism: fewer receptors → smaller end-plate potentials → failure with repeated use.</li>
+        <li><b>Lambert–Eaton syndrome</b>: Autoantibodies target presynaptic voltage-gated Ca²⁺ channels → reduced ACh release. Mechanism: less vesicle fusion → weakness that may improve with repeated activity (facilitation).</li>
+        <li><b>Botulism</b>: Toxin blocks ACh release → flaccid paralysis. Mechanism: SNARE cleavage prevents vesicle fusion.</li>
+        <li><b>Tetanus</b>: Toxin blocks inhibitory neurotransmitter release (GABA/glycine) → spastic paralysis. Mechanism: disinhibition of motor neurons.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>H) Fascia disorders (wrapping tissue fails: friction, fibrosis, infection)</summary>
+      <ul>
+        <li><b>Plantar fasciitis</b>: Heel pain (often worst with first steps) from microdamage at the plantar fascia’s calcaneal attachment. Mechanism: repetitive tensile load → microtears + degenerative change; “-itis” is historical and may be less purely inflammatory chronically.</li>
+        <li><b>Myofascial pain syndrome</b>: Regional pain driven by “trigger points” in taut muscle bands plus irritated fascia. Mechanism: local metabolic stress + sensitized nociceptors → referred pain patterns; perpetuated by overuse/posture/sleep stress.</li>
+        <li><b>Dupuytren contracture (palmar fascial fibromatosis)</b>: Progressive thickening of palmar fascia → cords → flexion contractures (classically ring/small finger). Mechanism: fibroblast/myofibroblast overactivity → collagen deposition + tissue shortening.</li>
+        <li><b>Eosinophilic fasciitis</b>: Painful swelling + thickened fascia (often forearms/legs). Mechanism: inflammatory infiltration + fibrosis of fascia → stiffness and “tight skin” sensation.</li>
+        <li><b>Necrotizing fasciitis</b>: Rapid, life-threatening infection tracking along fascial planes. Mechanism: bacterial toxins + ischemia in fascia → fast tissue death; hallmark is pain out of proportion and systemic toxicity; requires urgent surgery + antibiotics.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>I) Ligament pathology (joint stability fails: laxity → subluxation)</summary>
+      <p class="note">Ligaments are dense regular connective tissue connecting bone-to-bone; they’re classically cataloged with the skeletal system, but are biomechanically inseparable from muscle tendons. Ligaments set the “rules of motion” that muscles act within.</p>
+      <ul>
+        <li><b>Ligament sprain</b>: Overstretch/partial tearing of ligament fibers. Mechanism: collagen fiber disruption → hemorrhage + inflammatory mediators → pain, swelling, instability.</li>
+        <li><b>Complete ligament tear/rupture</b>: Full-thickness failure → mechanical instability. Mechanism: tensile overload (often with twisting) exceeds collagen strength; may need surgical reconstruction depending on structure/instability.</li>
+        <li><b>ACL tear</b>: Knee instability after pivot/noncontact deceleration injury. Mechanism: anterior tibial translation + rotation overwhelms ACL; “pop” + swelling can occur.</li>
+        <li><b>MCL sprain</b>: Medial knee pain after valgus stress. Mechanism: medial collateral fibers strained by force driving knee inward.</li>
+        <li><b>LCL sprain</b>: Lateral knee pain after varus stress. Mechanism: lateral collateral fibers strained by force driving knee outward.</li>
+        <li><b>Syndesmotic injury (high ankle sprain)</b>: Pain above ankle mortise, worse with external rotation/dorsiflexion. Mechanism: tearing of distal tibiofibular ligaments → widened mortise + prolonged recovery.</li>
+        <li><b>UCL injury (thumb MCP; “skier’s thumb”)</b>: Loss of pinch stability after forced abduction. Mechanism: UCL tear → valgus laxity at thumb MCP.</li>
+        <li><b>UCL injury (elbow; “thrower’s”)</b>: Medial elbow pain/instability with pitching. Mechanism: repeated valgus torque → microfailure/tear; may require reconstruction (“Tommy John”).</li>
+        <li><b>Ligamentous laxity / hypermobility</b>: Excess joint motion due to collagen quality or neuromuscular control. Mechanism: lower passive restraint → higher demand on muscles and proprioception; injury risk rises if control is poor. Subluxation = a partial dislocation: the joint surfaces lose normal alignment/contact without complete separation.</li>
+      </ul>
+    </details>
+
+
+  </section>
+
+</div>
+
+<script>
+  function toggleAll(open) {
+    document.querySelectorAll('details').forEach(d => d.open = open);
+  }
+
+  // =========================
+  // Global flashcards (terms + pathology)
+  // =========================
+  (function initFlashcards(){
+    const STORAGE_KEY = 'muscleStudyMode';
+    let studyMode = localStorage.getItem(STORAGE_KEY) === '1';
+
+    const studyToggle = document.getElementById('studyToggle');
+
+    function applyStudyMode(on){
+      studyMode = !!on;
+      localStorage.setItem(STORAGE_KEY, studyMode ? '1' : '0');
+
+      document.body.classList.toggle('study-mode', studyMode);
+
+      if(studyToggle){
+        studyToggle.classList.toggle('active-mode', studyMode);
+        studyToggle.textContent = 'Study mode';
+      }
+
+      document.querySelectorAll('li.fc-card').forEach(li => {
+        const btn = li.querySelector('button.fc-term');
+        if(studyMode){
+          li.classList.add('fc-hidden');
+          li.classList.remove('fc-revealed');
+          if(btn) btn.setAttribute('aria-expanded','false');
+        } else {
+          li.classList.remove('fc-hidden');
+          li.classList.add('fc-revealed');
+          if(btn) btn.setAttribute('aria-expanded','true');
+        }
+      });
+    }
+
+    // Convert any "<b>Term</b>: definition" list item into a flashcard
+    const lis = document.querySelectorAll('li');
+    lis.forEach(li => {
+      // Skip if already converted
+      if(li.classList.contains('fc-card')) return;
+
+      const b = li.querySelector('b');
+      if(!b) return;
+
+      const afterBold = (b.nextSibling && b.nextSibling.nodeType === Node.TEXT_NODE)
+        ? b.nextSibling.textContent
+        : '';
+      if(!afterBold.trim().startsWith(':')) return;
+
+      li.classList.add('fc-card');
+
+      const termText = b.textContent.trim();
+      const termBtn = document.createElement('button');
+      termBtn.type = 'button';
+      termBtn.className = 'fc-term';
+      termBtn.textContent = termText;
+
+      b.replaceWith(termBtn);
+
+      const defSpan = document.createElement('span');
+      defSpan.className = 'fc-def';
+
+      const nodesToMove = [];
+      let n = termBtn.nextSibling;
+      while(n){
+        nodesToMove.push(n);
+        n = n.nextSibling;
+      }
+      nodesToMove.forEach(node => defSpan.appendChild(node));
+      li.appendChild(defSpan);
+
+      function setHidden(hidden){
+        if(hidden){
+          li.classList.add('fc-hidden');
+          li.classList.remove('fc-revealed');
+          termBtn.setAttribute('aria-expanded','false');
+        } else {
+          li.classList.remove('fc-hidden');
+          li.classList.add('fc-revealed');
+          termBtn.setAttribute('aria-expanded','true');
+        }
+      }
+
+      setHidden(studyMode);
+
+      termBtn.addEventListener('click', () => {
+        const currentlyHidden = li.classList.contains('fc-hidden');
+        setHidden(!currentlyHidden);
+      });
+    });
+
+    if(studyToggle){
+      studyToggle.addEventListener('click', () => applyStudyMode(!studyMode));
+    }
+
+    applyStudyMode(studyMode);
+  })();
+</script>
+
+</body>
+</html>
